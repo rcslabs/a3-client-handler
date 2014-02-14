@@ -1,0 +1,16 @@
+{
+	"name": "sio-server",
+	"version": "0.1.0",
+	"dependencies": {
+		"express": "*",
+		"redis": "*",
+		"hiredis": "*",
+		"moment": "*",
+		"optimist": "*",
+		"policyfile": "*",
+		"socket.io": "*",
+		"socket.io-client": "*",
+		"websocket": "*",
+		"cluster": "*"
+	}
+}
