@@ -18,6 +18,7 @@ var cluster = require('cluster');
 var express = require('express');
 var RedisStore = require('socket.io/lib/stores/redis');
 
+
 class Utils
 {
     static logDate(): string{
@@ -106,7 +107,7 @@ class BaseConfig
 
     dashSeparatedToCamelCase(value: string): string
     {
-        return value.replace(/-(.)/gi, function(str,p1,p2,off,s){ return p1.toUpperCase(); });
+        return value.replace(/-(.)/gi, function(str,...args){ return args[0].toUpperCase(); });
     }
 
     getPropertyAsString(name: string): string
