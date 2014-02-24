@@ -1,90 +1,59 @@
 
-project.ext {
-	if(!project.ext.has('env')){
-		project.ext.env ='dev';
-	}
-	// println project.ext.env
-	project.ext.tscOutFile= 'client-handler.js';
-	project.ext.buildUser = System.getProperty("user.name");
-	project.ext.buildHost = java.net.InetAddress.getLocalHost().getHostName();
-	project.ext.date      = new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm").format(Calendar.getInstance().getTime());
-}
-
-task(svninfo) << {
-    new ByteArrayOutputStream().withStream { os ->
-        def result = exec {
-            executable = 'svn'
-            args = ['info']
-            standardOutput = os
-        }
-        def rev = (os.toString() =~ /Last Changed Rev: (\d+)/)
-        project.ext.revision = rev[0][1];
-        println "SVN Revision: ${project.ext.revision}"
-    }
-}
-
-task(clean, dependsOn: 'svninfo') << {
-	delete "target"
-	mkdir "target"
-}
-
-task(copySources, type: Copy, dependsOn: 'clean') {
+task copySources(type: Copy) {
+	delete buildDir
+	mkdir buildDir
 	from('src')
-	into('target')
+	into(buildDir)
 	include('*.ts')
 	include('package.json')
 	include('config.ini')
 }
 
-task(compile, type: Exec, dependsOn: 'copySources') {
-	workingDir 'target'
-	def mainModule = 'client-handler.ts';
-	def outDir = 'target';
-	def commandLineArgs = ['tsc', '-d', '--sourcemap', mainModule, '--target', 'ES5', '--outDir', outDir, '--out', project.ext.tscOutFile];
-	def os = System.getProperty("os.name").toLowerCase();
-	if(os.contains('mac')){
-		commandLineArgs[0] = "/usr/local/bin/tsc";
-	}else if(os.contains('windows')){
-		commandLineArgs[0] = System.getenv()['APPDATA'] + '\\npm\\node_modules\\typescript\\bin\\tsc'
-		commandLineArgs.add(0, 'node');
+task (build, type: Exec, dependsOn: 'copySources') {
+	doFirst {
+		workingDir buildDir
+		def commandLineArgs = ['tsc', '-d', '--sourcemap', 'client-handler.ts', '--target', 'ES5', '--outDir', buildDir, '--out', 'client-handler.js'];
+		def os = System.getProperty("os.name").toLowerCase();
+		if(os.contains('mac')){
+			commandLineArgs[0] = "/usr/local/bin/tsc";
+		}else if(os.contains('windows')){
+			commandLineArgs[0] = System.getenv()['APPDATA'] + '\\npm\\node_modules\\typescript\\bin\\tsc'
+			commandLineArgs.add(0, 'node');
+		}	
+		commandLine commandLineArgs
 	}
-	
-	commandLine commandLineArgs
 }
 
-task(packing, dependsOn: 'build') << {
-	def filelist = files { file('./target').listFiles() }
+task(npmInstall, type: Exec) {
+	doFirst {
+		workingDir buildDir
+		ignoreExitValue true
+		def commandLineArgs = ['npm', 'install', '--silent'];
+		def os = System.getProperty("os.name").toLowerCase();
+		if(os.contains('mac')){
+			commandLineArgs[0] = "/usr/local/bin/npm";
+		}else if(os.contains('windows')){
+			commandLineArgs[0] = 'npm'
+			commandLineArgs.add(0, '/c');
+			commandLineArgs.add(0, 'cmd');
+		}
+		commandLine commandLineArgs
+	}
+}
+
+task(dist, dependsOn: ['build', 'npmInstall']) << {
+	def filelist = files { file(buildDir).listFiles() }
 	filelist.filter { File file ->
 		file.name.endsWith('js') || file.name.endsWith('d.ts') 
 	}.each {File file ->
 		def text = file.text;
-		def header =	'//  BUILD INFO:\n'
-			header+=	"//  Environment: ${project.ext.env}\n"
-			header+=	"//  Revision:    ${project.ext.revision}\n"
-			header+=    "//  Builder:     ${project.ext.buildUser}\n";
-			header+=    "//  Host:        ${project.ext.buildHost}\n";
-			header+=    "//  Date:        ${project.ext.date}\n";
+		def header =	'//  BUILD INFO:\n';
+			header+=	"//  Version:     ${version}\n";
+			header+=	"//  Revision:    ${project.ext.revision}\n";
+			header+=    "//  Builder:     ${project.ext.builder}\n";
+			header+=    "//  Date:        ${project.ext.datetime}\n";
 			header+=	"\n";
 		file.write(header+text);
 	}
-	npmInstall.execute();
 }
 
-task(npmInstall, type: Exec) {
-	workingDir 'target'
-	ignoreExitValue true
-	def commandLineArgs = ['npm', 'install'];
-	def os = System.getProperty("os.name").toLowerCase();
-	if(os.contains('mac')){
-		commandLineArgs[0] = "/usr/local/bin/npm";
-	}else if(os.contains('windows')){
-		commandLineArgs[0] = 'npm'
-		commandLineArgs.add(0, '/c');
-		commandLineArgs.add(0, 'cmd');
-	}
-	
-	commandLine commandLineArgs
-}
-
-
-task(build, dependsOn: 'compile') << {}
