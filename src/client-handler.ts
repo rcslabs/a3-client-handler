@@ -357,6 +357,7 @@ class SIOServer implements MessageBrokerDelegate
                 for(var sid in self.sessions){
                     if(self.sessions[sid].clientId == socket.id){
                         var msg = {
+                            typz : "AuthMessage",
                             type: "CLOSE_SESSION", 
                             sessionId: sid, 
                             sender: self.config.selfChannel, 
