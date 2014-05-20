@@ -78,7 +78,34 @@ function prepareMessageForConsole(message, skip){
 
 function send(msg){
     msg.service = opts['service'];
-    
+
+    // added 'typz' feature - quick fix
+    switch (msg.type){
+        case 'START_SESSION':
+        case 'CLOSE_SESSION':
+            msg["typz"] = 'AuthMessage';
+            break;
+
+        case 'START_CALL':
+        case 'REJECT_CALL':
+        case 'ACCEPT_CALL':
+        case 'HANGUP_CALL':
+        case 'SEND_DTMF':
+            msg["typz"] = 'CallMessage';
+            break;
+
+        case 'SDP_OFFER':
+        case 'SDP_ANSWER':
+            msg["typz"] = 'MediaMessage';
+            break;
+
+        case 'JOIN_CHATROOM':
+        case 'UNJOIN_CHATROOM':
+        case 'CHAT_MESSAGE':
+            msg["typz"] = 'ChatMessage';
+            break;
+    }
+
     if(typeof sessionId != 'undefined'){ 
         msg.sessionId = sessionId; 
     }

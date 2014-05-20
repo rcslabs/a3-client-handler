@@ -1,13 +1,13 @@
 var cluster = require('cluster');
 
 var benchmark = {
-	url : 'http://127.0.0.1:8000',
+	url : 'http://192.168.1.200',
 	service : 'click2call',
 	logLevel : 1,
 	registerInterval : 1000,
 	hangupTimeout : 100000, 
 	password: '1234',
-	outgoingClients : {username:'1100-1199', dialNumber:'9196'},
+	outgoingClients : {username:'1100-1149', dialNumber:'9196'},
 	// incoming calls still not work
 	incomingClients : {username:'1200-1299', rejectCall:'BUSY'}
 }
