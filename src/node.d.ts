@@ -12,7 +12,7 @@
 declare var process: NodeProcess;
 declare var global: any;
 
-declare var console: {
+declare var console: Console; /*{
     log(...data: any[]): void;
     info(...data: any[]): void;
     error(...data: any[]): void;
@@ -21,7 +21,7 @@ declare var console: {
     timeEnd(label: string): void;
     trace(label: string): void;
     assert(expression: any, ...message: string[]): void;
-}
+}*/
 
 declare var __filename: string;
 declare var __dirname: string;
